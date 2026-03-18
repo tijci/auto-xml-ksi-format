@@ -1,0 +1,41 @@
+name: Atualização Diária do XML Otimizado
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  process-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📂 Baixando o código do repositório
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurando o ambiente Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📥 Baixando XML original do CRM
+        run: |
+          curl -o original_crm.xml "https://www.juliocasas.com.br/xml/xml_ksi_zap_vrsync_1_0_3.xml"
+
+
+      - name: ⚙️ Executando o Otimizador de XML
+        run: |
+          python optimize_xml.py --input original_crm.xml --output optimized.xml
+      - name: 💾 Fazendo Commit e Push do arquivo otimizado
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add optimized.xml
+          git commit -m "Update: XML Otimizado automaticamente em $(date +'%d/%m/%Y %H:%M')" || echo "Sem mudanças para salvar"
+          git push
