@@ -55,10 +55,13 @@ function sanitizeDescription(text) {
         .trim();
 }
 
-const SEPARATOR = ";";
+const SEPARATOR = ",";
 
 function csvEscape(value) {
-    const str = String(value ?? "");
+    let str = String(value ?? "");
+    if (/^[=+\-@]/.test(str)) {
+        str = "'" + str;
+    }
     if (str.includes('"') || str.includes(SEPARATOR) || str.includes("\n")) {
         return `"${str.replace(/"/g, '""')}"`;
     }
