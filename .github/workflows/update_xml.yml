@@ -1,41 +1,61 @@
-name: Atualização Diária do XML Otimizado
+name: Atualizar CSV de Imóveis
 
 on:
   schedule:
-    - cron: '0 0 * * *'
-  
+    # 01:00 horário de Brasília = 04:00 UTC (BRT é UTC-3)
+    - cron: "0 4 * * *"
+
+  # Permite disparar manualmente pela aba Actions do GitHub
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: write   # necessário para fazer git push no repositório
 
 jobs:
-  process-and-deploy:
+  gerar-csv:
+    name: Baixar XML → Gerar CSV → Deploy
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: 📂 Baixando o código do repositório
+      # 1. Clona o repositório
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 🐍 Configurando o ambiente Python
-        uses: actions/setup-python@v5
+      # 2. Configura Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.10'
+          node-version: "20"
+          cache: "npm"
 
-      - name: 📥 Baixando XML original do CRM
-        run: |
-          curl -o original_crm.xml "https://www.juliocasas.com.br/xml/xml_ksi_zap_vrsync_1_0_3.xml"
+      # 3. Instala dependências (apenas fast-xml-parser)
+      - name: Instalar dependências
+        run: npm ci
 
+      # 4. Garante que a pasta docs/ existe (GitHub Pages serve daqui)
+      - name: Criar pasta docs/
+        run: mkdir -p docs
 
-      - name: ⚙️ Executando o Otimizador de XML
+      # 5. Executa o script de conversão
+      #    O script já usa a URL do OCI como padrão, sem precisar de argumento
+      - name: Gerar CSV
+        run: node xml-to-csv.mjs
+
+      # 6. Commita e faz push do CSV e metadados atualizados
+      #    Só commita se houver mudança real no arquivo
+      - name: Commit e push do CSV
         run: |
-          python optimize_xml.py --input original_crm.xml --output optimized.xml
-      - name: 💾 Fazendo Commit e Push do arquivo otimizado
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add optimized.xml
-          git commit -m "Update: XML Otimizado automaticamente em $(date +'%d/%m/%Y %H:%M')" || echo "Sem mudanças para salvar"
-          git push
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add docs/imoveis.csv docs/meta.json docs/index.html
+
+          # Verifica se há algo para commitar antes de tentar
+          if git diff --cached --quiet; then
+            echo "✅ Nenhuma alteração no CSV. Nada para commitar."
+          else
+            TIMESTAMP=$(TZ='America/Sao_Paulo' date '+%d/%m/%Y %H:%M (BRT)')
+            git commit -m "🏠 Atualização automática do CSV — ${TIMESTAMP}"
+            git push
+            echo "✅ CSV publicado com sucesso."
+          fi

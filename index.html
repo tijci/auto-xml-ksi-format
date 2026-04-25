@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feed de Imóveis — Julio Casas</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            padding: 48px 40px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #000;
+            letter-spacing: -1px;
+            margin-bottom: 4px;
+        }
+
+        .logo span {
+            color: #FEE118;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 36px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .stat {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px 16px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #000;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .update-info {
+            font-size: 0.82rem;
+            color: #aaa;
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .update-info strong {
+            color: #555;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #000;
+            color: #FEE118;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 14px 28px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: opacity 0.15s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn svg {
+            flex-shrink: 0;
+        }
+
+        .info {
+            margin-top: 20px;
+            font-size: 0.78rem;
+            color: #bbb;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo">JULIO <span>CASAS</span></div>
+        <div class="subtitle">Feed de Imóveis · Atualização Diária</div>
+
+        <div class="stat-grid">
+            <div class="stat">
+                <div class="stat-value" id="total">—</div>
+                <div class="stat-label">Imóveis</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="tamanho">—</div>
+                <div class="stat-label">Tamanho KB</div>
+            </div>
+        </div>
+
+        <div class="update-info" id="update-info">
+            Carregando informações...
+        </div>
+
+        <a class="btn" href="imoveis.csv" download="imoveis_julio_casas.csv">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Baixar CSV
+        </a>
+
+        <div class="info">
+            <span class="status-dot"></span>
+            Atualizado automaticamente às 01h00 (BRT) · Separador: ponto-e-vírgula
+        </div>
+    </div>
+
+    <script>
+        // Carrega metadados gerados pelo script e preenche os valores na página
+        fetch("meta.json?t=" + Date.now())
+            .then(r => r.json())
+            .then(meta => {
+                document.getElementById("total").textContent =
+                    meta.total.toLocaleString("pt-BR");
+
+                document.getElementById("tamanho").textContent =
+                    meta.tamanho_kb.toLocaleString("pt-BR");
+
+                const dt = new Date(meta.gerado_em);
+                const fmt = dt.toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+
+                document.getElementById("update-info").innerHTML =
+                    `Última geração: <strong>${fmt} (BRT)</strong>`;
+            })
+            .catch(() => {
+                document.getElementById("update-info").textContent =
+                    "Não foi possível carregar os metadados.";
+            });
+    </script>
+</body>
+
+</html>
