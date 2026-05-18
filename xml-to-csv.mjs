@@ -111,7 +111,11 @@ function mapListing(listing) {
     )
     const chosenItem = primaryItem || mediaItems[0];
     const imagemUrl = getText(chosenItem);
-
+    const fotosAdicionais = mediaItems
+        .filter((item) => item !== chosenItem)
+        .slice(0, 10)
+        .map((item) => getText(item))
+        .join("|");
     return {
         // Identificação
         id: getText(listing.ListingID),
@@ -155,8 +159,10 @@ function mapListing(listing) {
         // Descrição (sem quebras de linha)
         descricao: descClean,
 
-        // Imagem Principal
+        // ImageNS
         imagem_url: imagemUrl,
+        fotos_adicionais: fotosAdicionais,
+
 
         // Contato
         contato_nome: getText(con.n ?? con.Name),
@@ -181,6 +187,7 @@ const HEADERS = [
     "moeda", "preco", "periodo_aluguel", "condominio", "iptu_anual",
     "descricao",
     "imagem_url",
+    "fotos_adicionais",
     "contato_nome", "contato_email", "contato_telefone", "contato_site",
     "imobiliaria", "contato_cidade", "contato_bairro", "contato_cep",
 ];
