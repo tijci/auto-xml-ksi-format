@@ -105,6 +105,13 @@ function mapListing(listing) {
     const descRaw = getText(det.Description);
     const descClean = sanitizeDescription(descRaw);
 
+    const mediaItems = listing.Media?.Item ?? [];
+    const primaryItem = mediaItems.find(
+        (item) => typeof item === "object" && item !== null && item["@_primary"] === "true"
+    )
+    const chosenItem = primaryItem || mediaItems[0];
+    const imagemUrl = getText(chosenItem);
+
     return {
         // Identificação
         id: getText(listing.ListingID),
@@ -148,6 +155,9 @@ function mapListing(listing) {
         // Descrição (sem quebras de linha)
         descricao: descClean,
 
+        // Imagem Principal
+        imagem_url: imagemUrl,
+
         // Contato
         contato_nome: getText(con.n ?? con.Name),
         contato_email: getText(con.Email),
@@ -170,6 +180,7 @@ const HEADERS = [
     "quartos", "suites", "banheiros", "vagas", "ano_construcao",
     "moeda", "preco", "periodo_aluguel", "condominio", "iptu_anual",
     "descricao",
+    "imagem_url",
     "contato_nome", "contato_email", "contato_telefone", "contato_site",
     "imobiliaria", "contato_cidade", "contato_bairro", "contato_cep",
 ];
